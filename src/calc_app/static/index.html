@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <article class="calc" aria-label="Calculator">
+        <header class="calc-top">
+          <div>
+            <p class="eyebrow">FastAPI</p>
+            <h1>Calculator</h1>
+          </div>
+          <div class="health" id="health" data-status="checking" title="API health">
+            <span class="health-dot" aria-hidden="true"></span>
+            <span class="health-label" id="health-label">Checking</span>
+          </div>
+        </header>
+
+        <section class="display" aria-live="polite">
+          <p class="expression" id="expression">&nbsp;</p>
+          <p class="value" id="display">0</p>
+        </section>
+
+        <div class="pad" id="pad">
+          <button type="button" class="key key-muted" data-action="clear" aria-label="Clear">
+            C
+          </button>
+          <button type="button" class="key key-muted" data-action="backspace" aria-label="Backspace">
+            ⌫
+          </button>
+          <button type="button" class="key key-op" data-op="/" aria-label="Divide">÷</button>
+          <button type="button" class="key key-op" data-op="*" aria-label="Multiply">×</button>
+
+          <button type="button" class="key" data-digit="7">7</button>
+          <button type="button" class="key" data-digit="8">8</button>
+          <button type="button" class="key" data-digit="9">9</button>
+          <button type="button" class="key key-op" data-op="-" aria-label="Subtract">−</button>
+
+          <button type="button" class="key" data-digit="4">4</button>
+          <button type="button" class="key" data-digit="5">5</button>
+          <button type="button" class="key" data-digit="6">6</button>
+          <button type="button" class="key key-op" data-op="+" aria-label="Add">+</button>
+
+          <button type="button" class="key" data-digit="1">1</button>
+          <button type="button" class="key" data-digit="2">2</button>
+          <button type="button" class="key" data-digit="3">3</button>
+          <button type="button" class="key key-eq" data-action="equals" aria-label="Equals">
+            =
+          </button>
+
+          <button type="button" class="key key-zero" data-digit="0">0</button>
+          <button type="button" class="key" data-action="decimal" aria-label="Decimal point">
+            .
+          </button>
+        </div>
+      </article>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

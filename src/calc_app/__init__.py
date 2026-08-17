@@ -1,0 +1,1 @@
+"""Calculator FastAPI application package."""
