@@ -1,6 +1,6 @@
 # Calculator API
 
-FastAPI calculator with a browser UI at `/`. Four `POST` operations plus a health check. OpenAPI UI is at `/docs`.
+FastAPI calculator with a browser UI at `/`. Five `POST` operations plus a health check. OpenAPI UI is at `/docs`.
 
 ## Install
 
@@ -30,7 +30,17 @@ curl -X POST http://127.0.0.1:8000/add \
 {"operation": "add", "a": 10.0, "b": 2.0, "result": 12.0}
 ```
 
-Other routes: `POST /subtract`, `POST /multiply`, `POST /divide` with the same `{"a", "b"}` body. `GET /health` returns `{"status": "ok"}`. Divide by zero returns HTTP 400.
+```bash
+curl -X POST http://127.0.0.1:8000/sqrt \
+  -H "Content-Type: application/json" \
+  -d '{"a": 9}'
+```
+
+```json
+{"operation": "sqrt", "a": 9.0, "b": null, "result": 3.0}
+```
+
+Other binary routes: `POST /subtract`, `POST /multiply`, `POST /divide` with the same `{"a", "b"}` body. Square root is unary: `POST /sqrt` with `{"a": 9}`. `GET /health` returns `{"status": "ok"}`. Divide by zero and square root of a negative number return HTTP 400.
 
 ## Memory
 

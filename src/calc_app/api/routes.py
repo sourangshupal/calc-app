@@ -11,8 +11,9 @@ from calc_app.api.schemas import (
     MemorySnapshot,
     MemoryValueRequest,
     OperandRequest,
+    UnaryOperandRequest,
 )
-from calc_app.calculator import add, divide, multiply, subtract
+from calc_app.calculator import add, divide, multiply, sqrt, subtract
 from calc_app.memory import MemoryStore
 
 router = APIRouter()
@@ -38,7 +39,7 @@ def _recorded_result(
     store: MemoryStore,
     operation: str,
     a: float,
-    b: float,
+    b: float | None,
     result: float,
 ) -> CalculationResult:
     store.record(operation, a, b, result)
@@ -71,6 +72,16 @@ def divide_numbers(payload: OperandRequest, store: StoreDep) -> CalculationResul
     except ZeroDivisionError as exc:
         raise HTTPException(status_code=400, detail="Division by zero") from exc
     return _recorded_result(store, "divide", payload.a, payload.b, result)
+
+
+@router.post("/sqrt", response_model=CalculationResult)
+def sqrt_number(payload: UnaryOperandRequest, store: StoreDep) -> CalculationResult:
+    """Return the square root of a. Returns 400 when a is negative."""
+    try:
+        result = sqrt(payload.a)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Square root of negative number") from exc
+    return _recorded_result(store, "sqrt", payload.a, None, result)
 
 
 @router.get("/memory", response_model=MemorySnapshot)

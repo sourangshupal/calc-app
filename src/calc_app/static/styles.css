@@ -188,10 +188,10 @@ h1 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-areas:
     "mc mr mplus mminus"
-    "clear back div mul"
-    "n7 n8 n9 sub"
-    "n4 n5 n6 add"
-    "n1 n2 n3 eq"
+    "clear back sqrt div"
+    "n7 n8 n9 mul"
+    "n4 n5 n6 sub"
+    "n1 n2 n3 add"
     "n0 n0 dot eq";
   gap: 10px;
 }
@@ -295,6 +295,10 @@ h1 {
 
 .pad [data-action="backspace"] {
   grid-area: back;
+}
+
+.pad [data-action="sqrt"] {
+  grid-area: sqrt;
 }
 
 .pad [data-op="/"] {

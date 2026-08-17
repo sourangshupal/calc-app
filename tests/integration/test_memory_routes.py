@@ -32,6 +32,26 @@ def test_divide_by_zero_is_not_recorded(client: TestClient) -> None:
     assert memory.json()["history"] == []
 
 
+def test_sqrt_is_recorded(client: TestClient) -> None:
+    response = client.post("/sqrt", json={"a": 16})
+    assert response.status_code == 200
+
+    memory = client.get("/memory")
+    assert memory.status_code == 200
+    entry = memory.json()["history"][0]
+    assert entry["operation"] == "sqrt"
+    assert entry["a"] == 16.0
+    assert entry["b"] is None
+    assert entry["result"] == 4.0
+
+
+def test_sqrt_negative_is_not_recorded(client: TestClient) -> None:
+    response = client.post("/sqrt", json={"a": -9})
+    assert response.status_code == 400
+    memory = client.get("/memory")
+    assert memory.json()["history"] == []
+
+
 def test_memory_plus_and_minus(client: TestClient) -> None:
     plus = client.post("/memory/plus", json={"value": 5})
     assert plus.status_code == 200

@@ -25,7 +25,7 @@ class HistoryEntry:
 
     operation: str
     a: float
-    b: float
+    b: float | None
     result: float
     at: str
 
@@ -80,13 +80,13 @@ class MemoryStore:
             self._register = 0.0
             self._save_unlocked()
 
-    def record(self, operation: str, a: float, b: float, result: float) -> HistoryEntry:
+    def record(self, operation: str, a: float, b: float | None, result: float) -> HistoryEntry:
         """Append a successful calculation to the tape and persist.
 
         Args:
             operation: Name of the arithmetic operation.
-            a: Left operand.
-            b: Right operand.
+            a: Left operand, or the sole operand for unary operations.
+            b: Right operand, or ``None`` for unary operations such as sqrt.
             result: Computed result.
 
         Returns:
@@ -121,7 +121,7 @@ class MemoryStore:
             HistoryEntry(
                 operation=str(item["operation"]),
                 a=float(item["a"]),
-                b=float(item["b"]),
+                b=None if item.get("b") is None else float(item["b"]),
                 result=float(item["result"]),
                 at=str(item["at"]),
             )

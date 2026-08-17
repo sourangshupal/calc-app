@@ -1,5 +1,7 @@
 """Pure arithmetic operations for the calculator API."""
 
+import math
+
 
 def add(a: float, b: float) -> float:
     """Return the sum of a and b."""
@@ -25,3 +27,14 @@ def divide(a: float, b: float) -> float:
     if b == 0:
         raise ZeroDivisionError("Division by zero")
     return a / b
+
+
+def sqrt(a: float) -> float:
+    """Return the square root of a.
+
+    Raises:
+        ValueError: If a is negative.
+    """
+    if a < 0:
+        raise ValueError("Square root of negative number")
+    return math.sqrt(a)

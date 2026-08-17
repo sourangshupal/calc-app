@@ -11,6 +11,7 @@
     subtract: "−",
     multiply: "×",
     divide: "÷",
+    sqrt: "√",
   };
 
   const displayEl = document.getElementById("display");
@@ -105,7 +106,11 @@
       button.dataset.result = String(entry.result);
       const expr = document.createElement("p");
       expr.className = "tape-expr";
-      expr.textContent = `${formatNumber(entry.a)} ${symbol} ${formatNumber(entry.b)}`;
+      if (entry.operation === "sqrt") {
+        expr.textContent = `√${formatNumber(entry.a)}`;
+      } else {
+        expr.textContent = `${formatNumber(entry.a)} ${symbol} ${formatNumber(entry.b)}`;
+      }
       const result = document.createElement("p");
       result.className = "tape-result";
       result.textContent = formatNumber(entry.result);
@@ -243,6 +248,41 @@
       state.error = "Network error";
       state.lastExpression = pending;
       return false;
+    } finally {
+      state.busy = false;
+      render();
+    }
+  }
+
+  async function applySqrt() {
+    if (state.busy || state.error) {
+      return;
+    }
+
+    const a = currentNumber();
+    const pending = `√${formatNumber(a)}`;
+
+    state.busy = true;
+    try {
+      const response = await fetch("/sqrt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ a }),
+      });
+      const body = await response.json();
+      if (response.ok) {
+        state.current = formatNumber(body.result);
+        state.overwrite = true;
+        state.error = null;
+        state.lastExpression = `${pending} =`;
+        await refreshMemory();
+        return;
+      }
+      state.error = extractError(body);
+      state.lastExpression = pending;
+    } catch {
+      state.error = "Network error";
+      state.lastExpression = pending;
     } finally {
       state.busy = false;
       render();
@@ -394,6 +434,8 @@
       inputDecimal();
     } else if (action === "equals") {
       evaluate();
+    } else if (action === "sqrt") {
+      applySqrt();
     } else if (action === "memory-plus") {
       memoryPlus();
     } else if (action === "memory-minus") {
@@ -450,6 +492,11 @@
     if (key === "Backspace") {
       event.preventDefault();
       backspace();
+      return;
+    }
+    if (key === "r" || key === "R") {
+      event.preventDefault();
+      applySqrt();
     }
   });
 
