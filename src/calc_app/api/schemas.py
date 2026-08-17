@@ -25,12 +25,24 @@ class OperandRequest(BaseModel):
         return _must_be_finite(value)
 
 
+class UnaryOperandRequest(BaseModel):
+    """JSON body with one finite numeric operand."""
+
+    a: float
+
+    @field_validator("a")
+    @classmethod
+    def must_be_finite(cls, value: float) -> float:
+        """Reject inf and nan so they return HTTP 422."""
+        return _must_be_finite(value)
+
+
 class CalculationResult(BaseModel):
     """Successful calculation response."""
 
     operation: str
     a: float
-    b: float
+    b: float | None = None
     result: float
 
 
@@ -51,7 +63,7 @@ class HistoryEntryModel(BaseModel):
 
     operation: str
     a: float
-    b: float
+    b: float | None = None
     result: float
     at: str
 

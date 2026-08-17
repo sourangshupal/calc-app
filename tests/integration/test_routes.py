@@ -41,6 +41,28 @@ def test_divide_by_zero(client) -> None:
     assert "Division by zero" in response.json()["detail"]
 
 
+def test_sqrt(client) -> None:
+    response = client.post("/sqrt", json={"a": 9})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["operation"] == "sqrt"
+    assert body["a"] == 9.0
+    assert body["b"] is None
+    assert body["result"] == 3.0
+
+
+def test_sqrt_of_zero(client) -> None:
+    response = client.post("/sqrt", json={"a": 0})
+    assert response.status_code == 200
+    assert response.json()["result"] == 0.0
+
+
+def test_sqrt_negative(client) -> None:
+    response = client.post("/sqrt", json={"a": -4})
+    assert response.status_code == 400
+    assert "Square root of negative number" in response.json()["detail"]
+
+
 def test_non_numeric_body(client) -> None:
     response = client.post("/add", json={"a": "x", "b": 2})
     assert response.status_code == 422
@@ -53,6 +75,11 @@ def test_infinite_operands_rejected(client) -> None:
 
 def test_nan_operands_rejected(client) -> None:
     response = client.post("/add", json={"a": "nan", "b": 1})
+    assert response.status_code == 422
+
+
+def test_sqrt_infinite_operand_rejected(client) -> None:
+    response = client.post("/sqrt", json={"a": "inf"})
     assert response.status_code == 422
 
 
@@ -71,6 +98,7 @@ def test_index_html(client) -> None:
     assert 'data-action="memory-recall"' in response.text
     assert 'data-action="memory-plus"' in response.text
     assert 'data-action="memory-minus"' in response.text
+    assert 'data-action="sqrt"' in response.text
     assert 'id="history"' in response.text
     assert "/static/memory_ui.js" in response.text
 

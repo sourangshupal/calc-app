@@ -79,3 +79,19 @@ def test_history_keeps_newest_100(tmp_path: Path) -> None:
     assert len(snap.history) == 100
     assert snap.history[0].a == 5.0
     assert snap.history[-1].a == 104.0
+
+
+def test_record_unary_sqrt_persists_without_b(tmp_path: Path) -> None:
+    path = tmp_path / "memory.json"
+    first = MemoryStore(path)
+    entry = first.record("sqrt", 9.0, None, 3.0)
+    assert entry.b is None
+    assert entry.result == 3.0
+
+    second = MemoryStore(path)
+    snap = second.snapshot()
+    assert len(snap.history) == 1
+    assert snap.history[0].operation == "sqrt"
+    assert snap.history[0].a == 9.0
+    assert snap.history[0].b is None
+    assert snap.history[0].result == 3.0
