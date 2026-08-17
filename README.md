@@ -32,6 +32,24 @@ curl -X POST http://127.0.0.1:8000/add \
 
 Other routes: `POST /subtract`, `POST /multiply`, `POST /divide` with the same `{"a", "b"}` body. `GET /health` returns `{"status": "ok"}`. Divide by zero returns HTTP 400.
 
+## Memory
+
+Successful calculations are stored on a history tape. Classic memory keys live on the UI (`MC`, `MR`, `M+`, `M−`). Both persist in `data/memory.json` (created on first use, gitignored). Newest 100 history entries are kept.
+
+```bash
+curl http://127.0.0.1:8000/memory
+curl -X POST http://127.0.0.1:8000/memory/plus \
+  -H "Content-Type: application/json" \
+  -d '{"value": 12}'
+curl -X POST http://127.0.0.1:8000/memory/minus \
+  -H "Content-Type: application/json" \
+  -d '{"value": 2}'
+curl -X DELETE http://127.0.0.1:8000/memory/register
+curl -X DELETE http://127.0.0.1:8000/memory/history
+```
+
+`GET /memory` returns `{"register": 0.0, "history": [...]}`. Tap a history row in the UI to load that result into the display.
+
 ## Tests
 
 ```bash

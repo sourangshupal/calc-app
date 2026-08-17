@@ -6,11 +6,22 @@
     "/": { path: "/divide", symbol: "÷" },
   };
 
+  const HISTORY_SYMBOLS = {
+    add: "+",
+    subtract: "−",
+    multiply: "×",
+    divide: "÷",
+  };
+
   const displayEl = document.getElementById("display");
   const expressionEl = document.getElementById("expression");
   const healthEl = document.getElementById("health");
   const healthLabelEl = document.getElementById("health-label");
   const padEl = document.getElementById("pad");
+  const mFlagEl = document.getElementById("m-flag");
+  const historyEl = document.getElementById("history");
+  const historyEmptyEl = document.getElementById("history-empty");
+  const historyClearEl = document.getElementById("history-clear");
 
   const state = {
     current: "0",
@@ -20,7 +31,11 @@
     error: null,
     lastExpression: "",
     busy: false,
+    memoryRegister: 0,
+    history: [],
   };
+
+  let memoryLoad = null;
 
   function formatNumber(value) {
     if (!Number.isFinite(value)) {
@@ -72,6 +87,32 @@
     padEl.querySelectorAll("[data-op]").forEach((button) => {
       button.classList.toggle("is-pending", button.dataset.op === state.operator);
     });
+
+    mFlagEl.hidden = state.memoryRegister === 0;
+    renderHistory();
+  }
+
+  function renderHistory() {
+    historyEl.replaceChildren();
+    const entries = [...state.history].reverse();
+    historyEmptyEl.hidden = entries.length > 0;
+    for (const entry of entries) {
+      const symbol = HISTORY_SYMBOLS[entry.operation] || entry.operation;
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "tape-item";
+      button.dataset.result = String(entry.result);
+      const expr = document.createElement("p");
+      expr.className = "tape-expr";
+      expr.textContent = `${formatNumber(entry.a)} ${symbol} ${formatNumber(entry.b)}`;
+      const result = document.createElement("p");
+      result.className = "tape-result";
+      result.textContent = formatNumber(entry.result);
+      button.append(expr, result);
+      item.appendChild(button);
+      historyEl.appendChild(item);
+    }
   }
 
   function clearAll() {
@@ -192,6 +233,7 @@
         state.overwrite = true;
         state.error = null;
         state.lastExpression = `${pending} =`;
+        await refreshMemory();
         return true;
       }
       state.error = extractError(body);
@@ -205,6 +247,116 @@
       state.busy = false;
       render();
     }
+  }
+
+  async function fetchMemorySnapshot() {
+    const response = await fetch("/memory");
+    if (!response.ok) {
+      throw new Error("memory");
+    }
+    return response.json();
+  }
+
+  function loadMemorySnapshot() {
+    if (!memoryLoad) {
+      memoryLoad = fetchMemorySnapshot().finally(() => {
+        memoryLoad = null;
+      });
+    }
+    return memoryLoad;
+  }
+
+  async function refreshMemory() {
+    try {
+      applyMemory(await loadMemorySnapshot());
+    } catch {
+      // Keep the last known tape if the memory endpoint is unreachable.
+    }
+  }
+
+  function applyMemory(body) {
+    state.memoryRegister = Number(body.register) || 0;
+    state.history = Array.isArray(body.history) ? body.history : [];
+    render();
+  }
+
+  async function memoryRequest(url, options) {
+    if (state.busy) {
+      return;
+    }
+    state.busy = true;
+    try {
+      const response = await fetch(url, options);
+      const body = await response.json();
+      if (response.ok) {
+        applyMemory(body);
+        return;
+      }
+      state.error = extractError(body);
+      render();
+    } catch {
+      state.error = "Network error";
+      render();
+    } finally {
+      state.busy = false;
+    }
+  }
+
+  function memoryPlus() {
+    if (state.error) {
+      return;
+    }
+    memoryRequest("/memory/plus", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value: currentNumber() }),
+    });
+  }
+
+  function memoryMinus() {
+    if (state.error) {
+      return;
+    }
+    memoryRequest("/memory/minus", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value: currentNumber() }),
+    });
+  }
+
+  function memoryClear() {
+    memoryRequest("/memory/register", { method: "DELETE" });
+  }
+
+  async function memoryRecall() {
+    if (state.busy) {
+      return;
+    }
+    state.busy = true;
+    try {
+      await CalcMemoryUi.recallMemory(state, loadMemorySnapshot, formatNumber);
+    } catch {
+      state.error = "Network error";
+    } finally {
+      state.busy = false;
+      render();
+    }
+  }
+
+  function loadHistoryResult(value) {
+    if (state.busy) {
+      return;
+    }
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return;
+    }
+    CalcMemoryUi.applyLoadedNumber(state, formatNumber(number), "");
+    render();
+  }
+
+  function clearHistory() {
+    memoryRequest("/memory/history", { method: "DELETE" });
   }
 
   async function checkHealth() {
@@ -242,7 +394,27 @@
       inputDecimal();
     } else if (action === "equals") {
       evaluate();
+    } else if (action === "memory-plus") {
+      memoryPlus();
+    } else if (action === "memory-minus") {
+      memoryMinus();
+    } else if (action === "memory-clear") {
+      memoryClear();
+    } else if (action === "memory-recall") {
+      memoryRecall();
     }
+  });
+
+  historyEl.addEventListener("click", (event) => {
+    const button = event.target.closest(".tape-item");
+    if (!button) {
+      return;
+    }
+    loadHistoryResult(button.dataset.result);
+  });
+
+  historyClearEl.addEventListener("click", () => {
+    clearHistory();
   });
 
   window.addEventListener("keydown", (event) => {
@@ -283,5 +455,6 @@
 
   render();
   checkHealth();
+  refreshMemory();
   setInterval(checkHealth, 15000);
 })();

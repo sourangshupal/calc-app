@@ -27,11 +27,27 @@
         </header>
 
         <section class="display" aria-live="polite">
-          <p class="expression" id="expression">&nbsp;</p>
+          <div class="display-meta">
+            <p class="expression" id="expression">&nbsp;</p>
+            <span class="m-flag" id="m-flag" hidden>M</span>
+          </div>
           <p class="value" id="display">0</p>
         </section>
 
         <div class="pad" id="pad">
+          <button type="button" class="key key-mem" data-action="memory-clear" aria-label="Memory clear">
+            MC
+          </button>
+          <button type="button" class="key key-mem" data-action="memory-recall" aria-label="Memory recall">
+            MR
+          </button>
+          <button type="button" class="key key-mem" data-action="memory-plus" aria-label="Memory plus">
+            M+
+          </button>
+          <button type="button" class="key key-mem" data-action="memory-minus" aria-label="Memory minus">
+            M−
+          </button>
+
           <button type="button" class="key key-muted" data-action="clear" aria-label="Clear">
             C
           </button>
@@ -64,7 +80,17 @@
           </button>
         </div>
       </article>
+
+      <aside class="tape" aria-label="Calculation history">
+        <header class="tape-top">
+          <h2>History</h2>
+          <button type="button" class="tape-clear" id="history-clear">Clear tape</button>
+        </header>
+        <ol class="tape-list" id="history"></ol>
+        <p class="tape-empty" id="history-empty">No calculations yet.</p>
+      </aside>
     </main>
+    <script src="/static/memory_ui.js"></script>
     <script src="/static/app.js"></script>
   </body>
 </html>

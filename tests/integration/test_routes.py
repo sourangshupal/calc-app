@@ -67,10 +67,18 @@ def test_index_html(client) -> None:
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "<title>Calculator</title>" in response.text
+    assert 'data-action="memory-clear"' in response.text
+    assert 'data-action="memory-recall"' in response.text
+    assert 'data-action="memory-plus"' in response.text
+    assert 'data-action="memory-minus"' in response.text
+    assert 'id="history"' in response.text
+    assert "/static/memory_ui.js" in response.text
 
 
 def test_static_assets(client) -> None:
     js_response = client.get("/static/app.js")
     css_response = client.get("/static/styles.css")
+    memory_ui = client.get("/static/memory_ui.js")
     assert js_response.status_code == 200
     assert css_response.status_code == 200
+    assert memory_ui.status_code == 200

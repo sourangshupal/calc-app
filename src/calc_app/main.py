@@ -7,13 +7,20 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from calc_app.api.routes import router
+from calc_app.memory import MemoryStore, default_memory_path
 
 STATIC_DIR = Path(__file__).parent / "static"
 
 
-def create_app() -> FastAPI:
-    """Build and return the calculator FastAPI application."""
+def create_app(memory_path: Path | None = None) -> FastAPI:
+    """Build and return the calculator FastAPI application.
+
+    Args:
+        memory_path: Optional JSON file for the M register and history tape.
+            Defaults to ``data/memory.json`` under the project root.
+    """
     application = FastAPI(title="Calculator API")
+    application.state.memory_store = MemoryStore(memory_path or default_memory_path())
     application.include_router(router)
 
     @application.get("/health")

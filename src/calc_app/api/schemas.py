@@ -2,7 +2,14 @@
 
 from math import isfinite
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+def _must_be_finite(value: float) -> float:
+    """Reject inf and nan so they return HTTP 422."""
+    if not isfinite(value):
+        raise ValueError("must be a finite number")
+    return value
 
 
 class OperandRequest(BaseModel):
@@ -15,9 +22,7 @@ class OperandRequest(BaseModel):
     @classmethod
     def must_be_finite(cls, value: float) -> float:
         """Reject inf and nan so they return HTTP 422."""
-        if not isfinite(value):
-            raise ValueError("must be a finite number")
-        return value
+        return _must_be_finite(value)
 
 
 class CalculationResult(BaseModel):
@@ -27,3 +32,37 @@ class CalculationResult(BaseModel):
     a: float
     b: float
     result: float
+
+
+class MemoryValueRequest(BaseModel):
+    """JSON body for M+ / M− with one finite number."""
+
+    value: float
+
+    @field_validator("value")
+    @classmethod
+    def must_be_finite(cls, value: float) -> float:
+        """Reject inf and nan so they return HTTP 422."""
+        return _must_be_finite(value)
+
+
+class HistoryEntryModel(BaseModel):
+    """One recorded calculation on the history tape."""
+
+    operation: str
+    a: float
+    b: float
+    result: float
+    at: str
+
+
+class MemorySnapshot(BaseModel):
+    """Current M register and calculation history."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    stored_value: float = Field(
+        validation_alias="register",
+        serialization_alias="register",
+    )
+    history: list[HistoryEntryModel]
